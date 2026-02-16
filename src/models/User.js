@@ -29,12 +29,11 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hachage du mot de passe avant sauvegarde
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function() {
   // On ne hache que si le mot de passe a été modifié (ou créé)
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password')) return;
   
   this.password = await bcrypt.hash(this.password, 12);
-  next();
 });
 
 // Méthode pour vérifier le mot de passe lors du login

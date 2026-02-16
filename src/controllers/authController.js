@@ -15,7 +15,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     username: req.body.username,
     email: req.body.email,
     password: req.body.password,
-    role: req.body.role || 'guest'
+    role: 'guest'
   });
 
   const token = signToken(newUser._id);
@@ -100,4 +100,15 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndDelete(req.params.id);
   if (!user) return next(new Error("Utilisateur non trouvé"));
   res.status(204).json({ status: 'success', data: null });
+});
+
+exports.createUser = catchAsync(async (req, res, next) => {
+  const newUser = await User.create({
+    username: req.body.username,
+    email: req.body.email,
+    password: req.body.password,
+    role: req.body.role || 'guest'
+  });
+  newUser.password = undefined;
+  res.status(201).json({ status: 'success', data: { user: newUser } });
 });

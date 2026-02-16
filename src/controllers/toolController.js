@@ -1,4 +1,5 @@
 const Tool = require('../models/toolModel');
+const Methodology = require('../models/methodologyModel');
 const catchAsync = require('../utils/catchAsync');
 
 exports.getToolByName = catchAsync(async (req, res, next) => {
@@ -19,6 +20,13 @@ exports.getToolByName = catchAsync(async (req, res, next) => {
 
 exports.createTool = catchAsync(async (req, res, next) => {
   const newTool = await Tool.create(req.body);
+  
+  // Synchronisation automatique avec la Kill Chain
+  await Methodology.findOneAndUpdate(
+    { title: newTool.category, key: 'kill-chain' },
+    { $addToSet: { tools: newTool.name } }
+  );
+
   res.status(201).json({ status: 'success', data: newTool });
 });
 
@@ -41,6 +49,12 @@ exports.deleteTool = catchAsync(async (req, res, next) => {
     error.statusCode = 404;
     return next(error);
   }
+
+  // Retrait automatique de la Kill Chain
+  await Methodology.findOneAndUpdate(
+    { title: tool.category, key: 'kill-chain' },
+    { $pull: { tools: tool.name } }
+  );
 
   // Statut 204 : Succès sans contenu à renvoyer
   res.status(204).json({

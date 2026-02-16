@@ -14,7 +14,9 @@ router.get('/me', (req, res) => {
 });
 
 // Routes Admin
-router.get('/', authController.restrictTo('admin'), authController.getAllUsers);
+router.route('/')
+  .get(authController.restrictTo('admin'), authController.getAllUsers)
+  .post(authController.restrictTo('admin'), authController.createUser);
 
 router.route('/:id')
   .patch(authController.restrictTo('admin'), authController.updateUser)
