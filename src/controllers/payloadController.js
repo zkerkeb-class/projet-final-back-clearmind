@@ -1,84 +1,62 @@
 const Payload = require('../models/Payload');
+const catchAsync = require('../utils/catchAsync');
 
-// Récupérer UNIQUEMENT mes payloads
-exports.getMyPayloads = async (req, res) => {
-  try {
-    const payloads = await Payload.find({ author: req.user.id });
-    
-    res.status(200).json({
-      status: 'success',
-      results: payloads.length,
-      data: { payloads }
-    });
-  } catch (err) {
-    res.status(400).json({ status: 'fail', message: err.message });
+exports.getMyPayloads = catchAsync(async (req, res, next) => {
+  const payloads = await Payload.find({ author: req.user.id });
+  
+  res.status(200).json({
+    status: 'success',
+    results: payloads.length,
+    data: { payloads }
+  });
+});
+
+exports.updatePayload = catchAsync(async (req, res, next) => {
+  const payload = await Payload.findOneAndUpdate(
+    { _id: req.params.id, author: req.user.id }, 
+    req.body, 
+    { new: true, runValidators: true }
+  );
+
+  if (!payload) {
+    const error = new Error("Payload non trouvé ou non autorisé");
+    error.statusCode = 404;
+    return next(error);
   }
-};
 
-// Mettre à jour un payload (seulement si on en est l'auteur)
-exports.updatePayload = async (req, res) => {
-  try {
-    const payload = await Payload.findOneAndUpdate(
-      { _id: req.params.id, author: req.user.id }, 
-      req.body, 
-      { new: true, runValidators: true }
-    );
+  res.status(200).json({ status: 'success', data: { payload } });
+});
 
-    if (!payload) {
-      return res.status(404).json({ message: "Payload non trouvé ou vous n'avez pas l'autorisation" });
-    }
+exports.deletePayload = catchAsync(async (req, res, next) => {
+  const payload = await Payload.findOneAndDelete({ _id: req.params.id, author: req.user.id });
 
-    res.status(200).json({ status: 'success', data: { payload } });
-  } catch (err) {
-    res.status(400).json({ status: 'fail', message: err.message });
+  if (!payload) {
+    const error = new Error("Payload non trouvé ou non autorisé");
+    error.statusCode = 404;
+    return next(error);
   }
-};
 
-exports.deletePayload = async (req, res) => {
-  try {
-    const payload = await Payload.findOneAndDelete({ _id: req.params.id, author: req.user.id });
+  res.status(204).json({ status: 'success', data: null });
+});
 
-    if (!payload) {
-      return res.status(404).json({ message: "Payload non trouvé ou vous n'avez pas l'autorisation" });
-    }
+exports.createPayload = catchAsync(async (req, res, next) => {
+  if (!req.body.author) req.body.author = req.user.id;
 
-    res.status(204).json({ status: 'success', data: null });
-  } catch (err) {
-    res.status(400).json({ status: 'fail', message: err.message });
-  }
-};
+  const newPayload = await Payload.create(req.body);
 
-exports.createPayload = async (req, res) => {
-  try {
-    // On ajoute l'ID de l'utilisateur connecté au body avant la création
-    if (!req.body.author) req.body.author = req.user.id;
+  res.status(201).json({
+    status: 'success',
+    data: { payload: newPayload }
+  });
+});
 
-    const newPayload = await Payload.create(req.body);
+exports.getAllPayloads = catchAsync(async (req, res, next) => {
+  const queryObj = { ...req.query };
+  const payloads = await Payload.find(queryObj).populate('author', 'username');
 
-    res.status(201).json({
-      status: 'success',
-      data: { payload: newPayload }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err.message
-    });
-  }
-};
-
-exports.getAllPayloads = async (req, res) => {
-  try {
-    // Filtrage basique (ex: ?category=XSS&severity=High)
-    const queryObj = { ...req.query };
-    const payloads = await Payload.find(queryObj).populate('author', 'username');
-
-    res.status(200).json({
-      status: 'success',
-      results: payloads.length,
-      data: { payloads }
-    });
-  } catch (err) {
-    res.status(400).json({ status: 'fail', message: err.message });
-  }
-};
+  res.status(200).json({
+    status: 'success',
+    results: payloads.length,
+    data: { payloads }
+  });
+});
