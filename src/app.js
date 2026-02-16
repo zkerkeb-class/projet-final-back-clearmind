@@ -10,6 +10,8 @@ const searchRouter = require('./routes/searchRoutes');
 const globalErrorHandler = require('./controllers/errorController');
 const wikiRouter = require('./routes/wikiRoutes');
 const newsRouter = require('./routes/newsRoutes');
+const methodologyRouter = require('./routes/methodologyRoutes');
+const toolRouter = require('./routes/toolRoutes');
 const app = express();
 
 // 1. Connexion DB
@@ -19,7 +21,7 @@ connectDB();
 app.use(express.json());
 app.use(cors());
 
-// 3. Tes Routes
+// 3. Routes
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/payloads', payloadRouter);
 app.use('/api/v1/boxes', boxRouter);
@@ -27,6 +29,8 @@ app.use('/api/v1/targets', targetRouter);
 app.use('/api/v1/search', searchRouter);
 app.use('/api/v1/wiki', wikiRouter);
 app.use('/api/v1/news', newsRouter);
+app.use('/api/v1/methodology', methodologyRouter);
+app.use('/api/v1/tools', toolRouter);
 
 app.all('*path', (req, res, next) => {
   const err = new Error(`Impossible de trouver ${req.originalUrl} sur ce serveur !`);

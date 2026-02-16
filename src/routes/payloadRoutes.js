@@ -9,10 +9,9 @@ router.use(authController.protect);
 // Route spécifique pour l'utilisateur connecté
 router.get('/my-payloads', payloadController.getMyPayloads);
 
-router
-  .route('/')
+router.route('/')
   .get(payloadController.getAllPayloads)
-  .post(payloadController.createPayload);
+  .post(authController.restrictTo('admin', 'pentester'), payloadController.createPayload);
 
 router
   .route('/:id')
