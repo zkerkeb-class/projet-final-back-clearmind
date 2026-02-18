@@ -1,17 +1,17 @@
 const express = require('express');
+const router = express.Router();
 const wikiController = require('../controllers/wikiController');
 const authController = require('../controllers/authController');
 
-const router = express.Router();
-
-router.use(authController.protect); // Toutes les routes wiki sont protégées
+router.use(authController.protect);
 
 router.route('/')
-  .get(wikiController.getAllMethods) // Tout le monde peut lire
-  .post(authController.restrictTo('admin', 'pentester'), wikiController.createMethod); // Seul le staff écrit
+  .get(wikiController.getAllMethods)
+  .post(authController.restrictTo('pentester', 'admin'), wikiController.createMethod);
 
 router.route('/:id')
   .get(wikiController.getMethod)
-  .patch(authController.restrictTo('admin', 'pentester'), wikiController.updateMethod);
+  .patch(authController.restrictTo('pentester', 'admin'), wikiController.updateMethod)
+  .delete(authController.restrictTo('pentester', 'admin'), wikiController.deleteMethod);
 
 module.exports = router;

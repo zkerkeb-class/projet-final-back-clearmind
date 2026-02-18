@@ -3,7 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 
 // 1. Récupérer toutes les entrées (pour la sidebar)
 exports.getAllMethods = catchAsync(async (req, res, next) => {
-  const methods = await Wiki.find().select('title port category').sort('port');
+  const methods = await Wiki.find().select('service port category').sort('port');
   
   res.status(200).json({
     status: 'success',
@@ -17,7 +17,7 @@ exports.getMethod = catchAsync(async (req, res, next) => {
   const method = await Wiki.findById(req.params.id);
 
   if (!method) {
-    return next(new AppError('Aucune méthodologie trouvée avec cet ID', 404));
+    return next(new Error('Aucune méthodologie trouvée avec cet ID'));
   }
 
   res.status(200).json({
@@ -47,11 +47,21 @@ exports.updateMethod = catchAsync(async (req, res, next) => {
   });
 
   if (!method) {
-    return next(new AppError('Impossible de modifier : ID introuvable', 404));
+    return next(new Error('Impossible de modifier : ID introuvable'));
   }
 
   res.status(200).json({
     status: 'success',
     data: { method }
   });
+});
+
+exports.deleteMethod = catchAsync(async (req, res, next) => {
+  const method = await Wiki.findByIdAndDelete(req.params.id);
+
+  if (!method) {
+    return next(new Error('Impossible de supprimer : ID introuvable'));
+  }
+
+  res.status(204).json({ status: 'success', data: null });
 });

@@ -1,31 +1,30 @@
 const mongoose = require('mongoose');
 
 const wikiSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: [true, 'Le titre est obligatoire (ex: Port 445 - SMB)'],
-    unique: true,
-    trim: true
-  },
   port: {
-    type: Number, // Permet de trier numériquement
-    index: true
+    type: Number,
+    required: [true, 'Le numéro de port est requis'],
+    unique: true
+  },
+  service: {
+    type: String,
+    required: [true, 'Le nom du service est requis'],
+    trim: true
   },
   category: {
     type: String,
-    enum: ['Network', 'Web', 'Windows', 'Linux', 'Cloud', 'Mobile'],
-    default: 'Network'
+    default: 'General'
   },
   content: {
     type: String,
-    required: [true, 'Le contenu Markdown est obligatoire']
+    required: [true, 'Le contenu méthodologique est requis']
   },
   author: {
     type: mongoose.Schema.ObjectId,
     ref: 'User',
-    required: true
+    required: [true, 'Une fiche doit avoir un auteur']
   },
-  updatedAt: {
+  createdAt: {
     type: Date,
     default: Date.now
   }
