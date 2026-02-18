@@ -9,7 +9,8 @@ const boxSchema = new mongoose.Schema({
   },
   ipAddress: {
     type: String,
-    required: [true, 'Une adresse IP est requise']
+    required: [true, 'Une adresse IP est requise'],
+    match: [/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/, 'Adresse IP invalide']
   },
   platform: {
     type: String,

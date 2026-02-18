@@ -1,4 +1,5 @@
 const Box = require('../models/Box');
+const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
 
 exports.getAllBoxes = catchAsync(async (req, res, next) => {
@@ -17,7 +18,13 @@ exports.getBox = catchAsync(async (req, res, next) => {
   if (!box) {
     return next(new Error('Box introuvable'));
   }
-  res.status(200).json({ status: 'success', data: box });
+
+  // Récupérer les cibles liées à cette box (Reconnaissance)
+  const linkedTargets = await Target.find({ linkedBox: req.params.id });
+  const boxData = box.toObject();
+  boxData.linkedTargets = linkedTargets;
+
+  res.status(200).json({ status: 'success', data: boxData });
 });
 
 exports.createBox = catchAsync(async (req, res, next) => {

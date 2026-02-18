@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema({
     type: String, 
     required: [true, "L'email est obligatoire"], 
     unique: true,
-    lowercase: true // Pour éviter les doublons type Test@test.com et test@test.com
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, "Veuillez fournir une adresse email valide"]
   },
   password: { 
     type: String, 

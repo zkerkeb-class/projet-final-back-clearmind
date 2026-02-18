@@ -36,7 +36,9 @@ exports.login = catchAsync(async (req, res, next) => {
     error.statusCode = 400;
     return next(error);
   }
-  const user = await User.findOne({ email }).select('+password');
+  
+  // Sécurité : Force la conversion en String pour éviter les injections NoSQL (ex: { "$ne": null })
+  const user = await User.findOne({ email: String(email) }).select('+password');
   if (!user || !(await user.correctPassword(password, user.password))) {
     const error = new Error("Email ou mot de passe incorrect");
     error.statusCode = 401;

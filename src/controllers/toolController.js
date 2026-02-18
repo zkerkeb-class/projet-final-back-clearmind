@@ -2,12 +2,18 @@ const Tool = require('../models/toolModel');
 const Methodology = require('../models/methodologyModel');
 const catchAsync = require('../utils/catchAsync');
 
+// Utilitaire pour échapper les caractères spéciaux dans les regex (Sécurité)
+const escapeRegex = (text) => {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+};
+
 exports.getToolByName = catchAsync(async (req, res, next) => {
   // On décode l'URL et on cherche sans tenir compte de la casse
   const decodedName = decodeURIComponent(req.params.name);
+  const safeName = escapeRegex(decodedName);
   
   const tool = await Tool.findOne({ 
-    name: { $regex: new RegExp(`^${decodedName}$`, 'i') } 
+    name: { $regex: new RegExp(`^${safeName}$`, 'i') } 
   });
 
   if (!tool) {
@@ -19,6 +25,11 @@ exports.getToolByName = catchAsync(async (req, res, next) => {
 });
 
 exports.createTool = catchAsync(async (req, res, next) => {
+  // Protection XSS basique sur les liens
+  if (req.body.link && /^\s*javascript:/i.test(req.body.link)) {
+    return next(new Error("Lien invalide : protocole non autorisé"));
+  }
+
   const newTool = await Tool.create(req.body);
   
   // Synchronisation automatique avec la Kill Chain
@@ -31,6 +42,11 @@ exports.createTool = catchAsync(async (req, res, next) => {
 });
 
 exports.updateTool = catchAsync(async (req, res, next) => {
+  // Protection XSS basique sur les liens
+  if (req.body.link && /^\s*javascript:/i.test(req.body.link)) {
+    return next(new Error("Lien invalide : protocole non autorisé"));
+  }
+
   const tool = await Tool.findOneAndUpdate({ name: req.params.name }, req.body, {
     new: true,
     runValidators: true
@@ -40,8 +56,9 @@ exports.updateTool = catchAsync(async (req, res, next) => {
 
 exports.deleteTool = catchAsync(async (req, res, next) => {
   // On cherche par 'name' (insensible à la casse pour plus de sécurité)
+  const safeName = escapeRegex(req.params.name);
   const tool = await Tool.findOneAndDelete({ 
-    name: { $regex: new RegExp(`^${req.params.name}$`, 'i') } 
+    name: { $regex: new RegExp(`^${safeName}$`, 'i') } 
   });
 
   if (!tool) {
