@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { ROLES } = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
   username: { 
@@ -20,8 +21,8 @@ const userSchema = new mongoose.Schema({
   },
   role: { 
     type: String, 
-    enum: ['guest', 'pentester', 'admin'], // Seules ces 3 valeurs sont acceptées
-    default: 'guest' 
+    enum: Object.values(ROLES), // Seules ces 3 valeurs sont acceptées
+    default: ROLES.GUEST 
   },
   createdAt: {
     type: Date,

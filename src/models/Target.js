@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { TARGET_OS, TARGET_STATUSES } = require('../utils/constants');
 
 const targetSchema = new mongoose.Schema({
   name: {
@@ -17,8 +18,8 @@ const targetSchema = new mongoose.Schema({
   },
   os: {
     type: String,
-    enum: ['Windows', 'Linux', 'MacOS', 'Android', 'iOS', 'Unknown'],
-    default: 'Unknown'
+    enum: Object.values(TARGET_OS),
+    default: TARGET_OS.UNKNOWN
   },
   ports: {
     type: [{
@@ -32,8 +33,8 @@ const targetSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Discovery', 'Scanning', 'Vulnerable', 'Compromised', 'Patched'],
-    default: 'Discovery'
+    enum: Object.values(TARGET_STATUSES),
+    default: TARGET_STATUSES.DISCOVERY
   },
   linkedBox: {
     type: mongoose.Schema.ObjectId,

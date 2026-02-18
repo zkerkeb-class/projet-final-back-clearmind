@@ -2,6 +2,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
 const catchAsync = require('../utils/catchAsync');
+const { ROLES } = require('../utils/constants');
 
 const signToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET, {
@@ -15,7 +16,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     username: req.body.username,
     email: req.body.email,
     password: req.body.password,
-    role: 'guest'
+    role: ROLES.GUEST
   });
 
   const token = signToken(newUser._id, newUser.role);
@@ -109,7 +110,7 @@ exports.createUser = catchAsync(async (req, res, next) => {
     username: req.body.username,
     email: req.body.email,
     password: req.body.password,
-    role: req.body.role || 'guest'
+    role: req.body.role || ROLES.GUEST
   });
   newUser.password = undefined;
   res.status(201).json({ status: 'success', data: { user: newUser } });

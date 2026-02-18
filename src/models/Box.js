@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { BOX_PLATFORMS, BOX_DIFFICULTIES, BOX_STATUSES } = require('../utils/constants');
 
 const boxSchema = new mongoose.Schema({
   name: {
@@ -14,18 +15,18 @@ const boxSchema = new mongoose.Schema({
   },
   platform: {
     type: String,
-    enum: ['HackTheBox', 'TryHackMe', 'Root-Me', 'VulnHub', 'Other'],
-    default: 'HackTheBox'
+    enum: Object.values(BOX_PLATFORMS),
+    default: BOX_PLATFORMS.HTB
   },
   difficulty: {
     type: String,
-    enum: ['Easy', 'Medium', 'Hard', 'Insane'],
-    default: 'Easy'
+    enum: Object.values(BOX_DIFFICULTIES),
+    default: BOX_DIFFICULTIES.EASY
   },
   status: {
     type: String,
-    enum: ['Todo', 'In-Progress', 'User-Flag', 'Root-Flag'],
-    default: 'Todo'
+    enum: Object.values(BOX_STATUSES),
+    default: BOX_STATUSES.TODO
   },
   notes: {
     type: String,
