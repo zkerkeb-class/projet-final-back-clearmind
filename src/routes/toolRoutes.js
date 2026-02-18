@@ -15,6 +15,13 @@ router.post('/',
 
 router.get('/', authController.protect, toolController.getAllTools);
 
+// Route de modification sécurisée (Admin uniquement)
+router.patch('/:name', 
+  authController.protect, 
+  authController.restrictTo('admin'), 
+  toolController.updateTool
+);
+
 router.delete('/:name', 
   authController.protect, 
   authController.restrictTo('admin'), 

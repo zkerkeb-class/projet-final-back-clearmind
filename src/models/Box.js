@@ -3,17 +3,18 @@ const mongoose = require('mongoose');
 const boxSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'La machine doit avoir un nom'],
+    required: [true, 'Une box doit avoir un nom'],
+    unique: true,
     trim: true
-  },
-  platform: {
-    type: String,
-    required: [true, 'La plateforme est obligatoire'],
-    enum: ['HackTheBox', 'TryHackMe', 'Root-Me', 'VulnHub', 'Other']
   },
   ipAddress: {
     type: String,
-    trim: true
+    required: [true, 'Une adresse IP est requise']
+  },
+  platform: {
+    type: String,
+    enum: ['HackTheBox', 'TryHackMe', 'Root-Me', 'VulnHub', 'Other'],
+    default: 'HackTheBox'
   },
   difficulty: {
     type: String,
@@ -27,12 +28,7 @@ const boxSchema = new mongoose.Schema({
   },
   notes: {
     type: String,
-    description: 'Tes notes de reconnaissance, ports ouverts, etc.'
-  },
-  target: {
-    type: mongoose.Schema.ObjectId,
-    ref: 'Target',
-    description: "La cible parente à laquelle cette machine appartient"
+    default: ''
   },
   author: {
     type: mongoose.Schema.ObjectId,
@@ -41,7 +37,7 @@ const boxSchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now()
+    default: Date.now
   }
 });
 
