@@ -15,6 +15,7 @@ router.route('/')
 
 router
   .route('/:id')
+  .get(payloadController.getPayload)
   .patch(payloadController.updatePayload)
   .delete(payloadController.deletePayload);
 

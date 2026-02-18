@@ -1,5 +1,6 @@
 const Payload = require('../models/Payload');
 const catchAsync = require('../utils/catchAsync');
+const { ROLES } = require('../utils/constants');
 
 exports.getMyPayloads = catchAsync(async (req, res, next) => {
   const payloads = await Payload.find({ author: req.user.id });
@@ -11,9 +12,25 @@ exports.getMyPayloads = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getPayload = catchAsync(async (req, res, next) => {
+  const payload = await Payload.findById(req.params.id).populate('author', 'username');
+
+  if (!payload) {
+    const error = new Error("Payload introuvable");
+    error.statusCode = 404;
+    return next(error);
+  }
+
+  res.status(200).json({ status: 'success', data: { payload } });
+});
+
 exports.updatePayload = catchAsync(async (req, res, next) => {
+  // L'admin peut tout modifier, sinon on vérifie l'auteur
+  const query = { _id: req.params.id };
+  if (req.user.role !== ROLES.ADMIN) query.author = req.user.id;
+
   const payload = await Payload.findOneAndUpdate(
-    { _id: req.params.id, author: req.user.id }, 
+    query, 
     req.body, 
     { new: true, runValidators: true }
   );
@@ -28,7 +45,10 @@ exports.updatePayload = catchAsync(async (req, res, next) => {
 });
 
 exports.deletePayload = catchAsync(async (req, res, next) => {
-  const payload = await Payload.findOneAndDelete({ _id: req.params.id, author: req.user.id });
+  const query = { _id: req.params.id };
+  if (req.user.role !== ROLES.ADMIN) query.author = req.user.id;
+
+  const payload = await Payload.findOneAndDelete(query);
 
   if (!payload) {
     const error = new Error("Payload non trouvé ou non autorisé");
