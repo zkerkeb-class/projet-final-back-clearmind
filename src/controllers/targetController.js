@@ -2,11 +2,32 @@ const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
 
 exports.getAllTargets = catchAsync(async (req, res, next) => {
-  const targets = await Target.find().populate('linkedBox', 'name platform').sort('-createdAt');
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 10;
+  const skip = (page - 1) * limit;
+
+  const queryObj = {};
+
+  if (req.query.search) {
+    queryObj.$or = [
+      { name: { $regex: req.query.search, $options: 'i' } },
+      { ip: { $regex: req.query.search, $options: 'i' } },
+      { domain: { $regex: req.query.search, $options: 'i' } }
+    ];
+  }
+
+  if (req.query.os && req.query.os !== 'All') queryObj.os = req.query.os;
+  if (req.query.status && req.query.status !== 'All') queryObj.status = req.query.status;
+
+  const targets = await Target.find(queryObj).populate('linkedBox', 'name platform').sort('-createdAt').skip(skip).limit(limit);
+  const total = await Target.countDocuments(queryObj);
   
   res.status(200).json({
     status: 'success',
     results: targets.length,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
     data: { targets }
   });
 });

@@ -3,11 +3,32 @@ const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
 
 exports.getAllBoxes = catchAsync(async (req, res, next) => {
-  const boxes = await Box.find().sort('-createdAt');
+  const page = req.query.page * 1 || 1;
+  const limit = req.query.limit * 1 || 12;
+  const skip = (page - 1) * limit;
+
+  // Construction du filtre dynamique
+  const queryObj = {};
+  
+  if (req.query.search) {
+    queryObj.$or = [
+      { name: { $regex: req.query.search, $options: 'i' } },
+      { ipAddress: { $regex: req.query.search, $options: 'i' } }
+    ];
+  }
+  
+  if (req.query.difficulty && req.query.difficulty !== 'All') queryObj.difficulty = req.query.difficulty;
+  if (req.query.platform && req.query.platform !== 'All') queryObj.platform = req.query.platform;
+
+  const boxes = await Box.find(queryObj).sort('-createdAt').skip(skip).limit(limit);
+  const total = await Box.countDocuments(queryObj);
   
   res.status(200).json({
     status: 'success',
     results: boxes.length,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
     data: { boxes } // Format attendu par le frontend: res.data.data.boxes
   });
 });
