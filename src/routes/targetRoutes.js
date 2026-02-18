@@ -7,7 +7,7 @@ const { ROLES } = require('../utils/constants');
 router.use(authController.protect);
 
 router.route('/')
-  .get(targetController.getAllTargets)
+  .get(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.getAllTargets)
   .post(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.createTarget);
 
 router.route('/:id')

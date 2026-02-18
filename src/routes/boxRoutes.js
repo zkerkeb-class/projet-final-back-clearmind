@@ -8,11 +8,11 @@ const { ROLES } = require('../utils/constants');
 router.use(authController.protect);
 
 router.route('/')
-  .get(boxController.getAllBoxes)
+  .get(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), boxController.getAllBoxes)
   .post(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), boxController.createBox);
 
 router.route('/:id')
-  .get(boxController.getBox)
+  .get(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), boxController.getBox)
   .delete(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), boxController.deleteBox)
   .patch(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), boxController.updateBox);
 

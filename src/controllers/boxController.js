@@ -1,6 +1,7 @@
 const Box = require('../models/Box');
 const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
+const { ROLES } = require('../utils/constants');
 
 exports.getAllBoxes = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
@@ -19,6 +20,11 @@ exports.getAllBoxes = catchAsync(async (req, res, next) => {
   
   if (req.query.difficulty && req.query.difficulty !== 'All') queryObj.difficulty = req.query.difficulty;
   if (req.query.platform && req.query.platform !== 'All') queryObj.platform = req.query.platform;
+
+  // Filtrage par auteur (sauf pour les admins)
+  if (req.user.role !== ROLES.ADMIN) {
+    queryObj.author = req.user.id;
+  }
 
   const boxes = await Box.find(queryObj).sort('-createdAt').skip(skip).limit(limit);
   const total = await Box.countDocuments(queryObj);

@@ -1,5 +1,6 @@
 const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
+const { ROLES } = require('../utils/constants');
 
 exports.getAllTargets = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
@@ -19,6 +20,11 @@ exports.getAllTargets = catchAsync(async (req, res, next) => {
   if (req.query.os && req.query.os !== 'All') queryObj.os = req.query.os;
   if (req.query.status && req.query.status !== 'All') queryObj.status = req.query.status;
 
+  // Filtrage par auteur (sauf pour les admins)
+  if (req.user.role !== ROLES.ADMIN) {
+    queryObj.author = req.user.id;
+  }
+
   const targets = await Target.find(queryObj).populate('linkedBox', 'name platform').sort('-createdAt').skip(skip).limit(limit);
   const total = await Target.countDocuments(queryObj);
   
@@ -33,6 +39,7 @@ exports.getAllTargets = catchAsync(async (req, res, next) => {
 });
 
 exports.createTarget = catchAsync(async (req, res, next) => {
+  req.body.author = req.user.id;
   let newTarget = await Target.create(req.body);
   newTarget = await newTarget.populate('linkedBox', 'name platform');
 

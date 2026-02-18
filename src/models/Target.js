@@ -41,6 +41,11 @@ const targetSchema = new mongoose.Schema({
     ref: 'Box',
     default: null
   },
+  author: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User',
+    required: [true, 'Une cible doit appartenir à un utilisateur']
+  },
   createdAt: {
     type: Date,
     default: Date.now
