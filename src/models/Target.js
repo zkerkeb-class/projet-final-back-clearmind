@@ -21,7 +21,13 @@ const targetSchema = new mongoose.Schema({
     default: 'Unknown'
   },
   ports: {
-    type: [String], // Ex: ["80/tcp", "443/tcp", "3306/tcp"]
+    type: [{
+      port: {
+        type: String,
+        match: [/^\d+$/, 'Le port doit être un nombre valide']
+      },
+      service: String
+    }],
     default: []
   },
   status: {
