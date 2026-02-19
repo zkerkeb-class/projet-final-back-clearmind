@@ -12,6 +12,7 @@ const wikiRouter = require('./routes/wikiRoutes');
 const newsRouter = require('./routes/newsRoutes');
 const methodologyRouter = require('./routes/methodologyRoutes');
 const toolRouter = require('./routes/toolRoutes');
+const reverseShellRouter = require('./routes/reverseShellRoutes');
 const app = express();
 
 // 1. Connexion DB
@@ -31,6 +32,7 @@ app.use('/api/v1/wiki', wikiRouter);
 app.use('/api/v1/news', newsRouter);
 app.use('/api/v1/methodology', methodologyRouter);
 app.use('/api/v1/tools', toolRouter);
+app.use('/api/v1/reverseshells', reverseShellRouter);
 
 app.all('*path', (req, res, next) => {
   const err = new Error(`Impossible de trouver ${req.originalUrl} sur ce serveur !`);
