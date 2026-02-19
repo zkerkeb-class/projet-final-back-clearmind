@@ -1,32 +1,19 @@
 const express = require('express');
 const router = express.Router();
 const toolController = require('../controllers/toolController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../middlewares/authMiddleware');
 const { ROLES } = require('../utils/constants');
 
-// Tout utilisateur connecté peut voir un outil
-router.get('/:name', authController.protect, toolController.getToolByName);
+// Protection globale : Authentification JWT requise pour toutes les routes
+router.use(authMiddleware.protect);
 
-// SEUL l'administrateur peut créer des outils
-router.post('/', 
-  authController.protect, 
-  authController.restrictTo(ROLES.ADMIN), 
-  toolController.createTool
-);
+router.route('/')
+  .get(toolController.getAllTools)
+  .post(authMiddleware.restrictTo(ROLES.ADMIN), toolController.createTool);
 
-router.get('/', authController.protect, toolController.getAllTools);
-
-// Route de modification sécurisée (Admin uniquement)
-router.patch('/:name', 
-  authController.protect, 
-  authController.restrictTo(ROLES.ADMIN), 
-  toolController.updateTool
-);
-
-router.delete('/:name', 
-  authController.protect, 
-  authController.restrictTo(ROLES.ADMIN), 
-  toolController.deleteTool
-);
+router.route('/:name')
+  .get(toolController.getToolByName)
+  .patch(authMiddleware.restrictTo(ROLES.ADMIN), toolController.updateTool)
+  .delete(authMiddleware.restrictTo(ROLES.ADMIN), toolController.deleteTool);
 
 module.exports = router;

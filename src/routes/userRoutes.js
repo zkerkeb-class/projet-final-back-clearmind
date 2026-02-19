@@ -1,5 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/authController');
+const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
 
 // Routes publiques
@@ -7,7 +8,7 @@ router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
 // Protection globale
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 router.get('/me', (req, res) => {
   res.status(200).json({ status: 'success', data: { user: req.user } });
@@ -15,11 +16,11 @@ router.get('/me', (req, res) => {
 
 // Routes Admin
 router.route('/')
-  .get(authController.restrictTo('admin'), authController.getAllUsers)
-  .post(authController.restrictTo('admin'), authController.createUser);
+  .get(authMiddleware.restrictTo('admin'), authController.getAllUsers)
+  .post(authMiddleware.restrictTo('admin'), authController.createUser);
 
 router.route('/:id')
-  .patch(authController.restrictTo('admin'), authController.updateUser)
-  .delete(authController.restrictTo('admin'), authController.deleteUser);
+  .patch(authMiddleware.restrictTo('admin'), authController.updateUser)
+  .delete(authMiddleware.restrictTo('admin'), authController.deleteUser);
 
 module.exports = router;

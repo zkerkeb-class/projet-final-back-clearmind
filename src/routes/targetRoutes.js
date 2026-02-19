@@ -1,17 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const targetController = require('../controllers/targetController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../middlewares/authMiddleware');
 const { ROLES } = require('../utils/constants');
 
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 router.route('/')
-  .get(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.getAllTargets)
-  .post(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.createTarget);
+  .get(authMiddleware.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.getAllTargets)
+  .post(authMiddleware.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.createTarget);
 
 router.route('/:id')
-  .delete(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.deleteTarget)
-  .patch(authController.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.updateTarget);
+  .delete(authMiddleware.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.deleteTarget)
+  .patch(authMiddleware.restrictTo(ROLES.PENTESTER, ROLES.ADMIN), targetController.updateTarget);
 
 module.exports = router;

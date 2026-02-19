@@ -1,17 +1,17 @@
 const express = require('express');
 const payloadController = require('../controllers/payloadController');
-const authController = require('../controllers/authController');
+const authMiddleware = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-router.use(authController.protect);
+router.use(authMiddleware.protect);
 
 // Route spécifique pour l'utilisateur connecté
 router.get('/my-payloads', payloadController.getMyPayloads);
 
 router.route('/')
   .get(payloadController.getAllPayloads)
-  .post(authController.restrictTo('admin', 'pentester'), payloadController.createPayload);
+  .post(authMiddleware.restrictTo('admin', 'pentester'), payloadController.createPayload);
 
 router
   .route('/:id')
