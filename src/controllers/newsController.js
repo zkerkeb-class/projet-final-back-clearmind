@@ -6,7 +6,10 @@ exports.getLatestNews = catchAsync(async (req, res, next) => {
   const sources = [
     'https://feeds.feedburner.com/TheHackersNews',
     'https://www.cert.ssi.gouv.fr/feed/',
-    'https://unit42.paloaltonetworks.com/feed/'
+    'https://unit42.paloaltonetworks.com/feed/',
+    'https://www.bleepingcomputer.com/feed/',
+    'https://krebsonsecurity.com/feed/',
+    'https://www.darkreading.com/rss.xml'
   ];
 
   // Récupération des flux en parallèle
@@ -22,19 +25,41 @@ exports.getLatestNews = catchAsync(async (req, res, next) => {
   // Fusion, nettoyage et tri chronologique
   const allItems = results
     .flatMap(feed => feed.items)
-    .map(item => ({
-      title: item.title,
-      link: item.link,
-      pubDate: item.pubDate,
-      source: item.link.includes('cert.ssi.gouv.fr') ? 'CERT-FR' : 
-              item.link.includes('unit42') ? 'UNIT 42' : 'HACKER NEWS',
-      contentSnippet: item.contentSnippet ? item.contentSnippet.slice(0, 180) + '...' : ''
-    }))
+    .map(item => {
+      let source = 'HACKER NEWS';
+      let color = '#ffffff'; // White (Neutral)
+
+      if (item.link.includes('cert.ssi.gouv.fr')) {
+        source = 'CERT-FR';
+        color = '#00d4ff'; // Cyan (Couleur principale du thème)
+      } else if (item.link.includes('unit42')) {
+        source = 'UNIT 42';
+        color = '#9b59b6'; // Amethyst Purple
+      } else if (item.link.includes('bleepingcomputer')) {
+        source = 'BLEEPING COMPUTER';
+        color = '#3498db'; // Blue
+      } else if (item.link.includes('krebsonsecurity')) {
+        source = 'KREBS ON SECURITY';
+        color = '#e056fd'; // Magenta
+      } else if (item.link.includes('darkreading')) {
+        source = 'DARK READING';
+        color = '#1abc9c'; // Turquoise
+      }
+
+      return {
+        title: item.title,
+        link: item.link,
+        pubDate: item.pubDate,
+        source,
+        color,
+        contentSnippet: item.contentSnippet ? item.contentSnippet.slice(0, 180) + '...' : ''
+      };
+    })
     .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
   res.status(200).json({
     status: 'success',
     results: allItems.length,
-    data: { items: allItems.slice(0, 30) } // Top 30 des dernières menaces
+    data: { items: allItems }
   });
 });
