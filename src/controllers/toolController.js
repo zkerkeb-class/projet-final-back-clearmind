@@ -7,6 +7,15 @@ const escapeRegex = (text) => {
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 };
 
+// Utilitaire pour filtrer les champs autorisés (Protection Mass Assignment)
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  Object.keys(obj).forEach(el => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+  return newObj;
+};
+
 exports.getToolByName = catchAsync(async (req, res, next) => {
   // On décode l'URL et on cherche sans tenir compte de la casse
   const decodedName = decodeURIComponent(req.params.name);
@@ -30,7 +39,10 @@ exports.createTool = catchAsync(async (req, res, next) => {
     return next(new Error("Lien invalide : protocole non autorisé"));
   }
 
-  const newTool = await Tool.create(req.body);
+  // On ne garde que les champs autorisés pour éviter l'injection de données indésirables
+  const filteredBody = filterObj(req.body, 'name', 'description', 'category', 'link', 'icon', 'commandExample');
+  
+  const newTool = await Tool.create(filteredBody);
   
   // Synchronisation automatique avec la Kill Chain
   await Methodology.findOneAndUpdate(
@@ -47,7 +59,10 @@ exports.updateTool = catchAsync(async (req, res, next) => {
     return next(new Error("Lien invalide : protocole non autorisé"));
   }
 
-  const tool = await Tool.findOneAndUpdate({ name: req.params.name }, req.body, {
+  // Filtrage strict des champs modifiables
+  const filteredBody = filterObj(req.body, 'name', 'description', 'category', 'link', 'icon', 'commandExample');
+
+  const tool = await Tool.findOneAndUpdate({ name: req.params.name }, filteredBody, {
     new: true,
     runValidators: true
   });

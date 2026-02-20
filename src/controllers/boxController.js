@@ -3,6 +3,15 @@ const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
 const { ROLES } = require('../utils/constants');
 
+// Utilitaire pour filtrer les champs autorisés (Protection Mass Assignment)
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  Object.keys(obj).forEach(el => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+  return newObj;
+};
+
 exports.getAllBoxes = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
   const limit = req.query.limit * 1 || 12;
@@ -40,10 +49,14 @@ exports.getAllBoxes = catchAsync(async (req, res, next) => {
 });
 
 exports.getBox = catchAsync(async (req, res, next) => {
-  const box = await Box.findById(req.params.id);
+  // Protection IDOR : On vérifie que la box appartient à l'utilisateur (sauf Admin)
+  const query = { _id: req.params.id };
+  if (req.user.role !== ROLES.ADMIN) query.author = req.user.id;
+
+  const box = await Box.findOne(query);
 
   if (!box) {
-    return next(new Error('Box introuvable'));
+    return next(new Error('Box introuvable ou accès refusé'));
   }
 
   // Récupérer les cibles liées à cette box (Reconnaissance)
@@ -55,8 +68,11 @@ exports.getBox = catchAsync(async (req, res, next) => {
 });
 
 exports.createBox = catchAsync(async (req, res, next) => {
-  req.body.author = req.user.id;
-  const newBox = await Box.create(req.body);
+  // Protection Mass Assignment : On ne garde que les champs autorisés
+  const filteredBody = filterObj(req.body, 'name', 'ipAddress', 'platform', 'difficulty', 'status', 'notes');
+  filteredBody.author = req.user.id;
+
+  const newBox = await Box.create(filteredBody);
 
   res.status(201).json({
     status: 'success',
@@ -65,16 +81,29 @@ exports.createBox = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteBox = catchAsync(async (req, res, next) => {
-  const box = await Box.findByIdAndDelete(req.params.id);
+  const query = { _id: req.params.id };
+  if (req.user.role !== ROLES.ADMIN) query.author = req.user.id;
+
+  const box = await Box.findOneAndDelete(query);
 
   if (!box) {
-    return next(new Error('Aucune box trouvée avec cet ID'));
+    return next(new Error('Aucune box trouvée ou accès refusé'));
   }
 
   res.status(204).json({ status: 'success', data: null });
 });
 
 exports.updateBox = catchAsync(async (req, res, next) => {
-  const box = await Box.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+  const query = { _id: req.params.id };
+  if (req.user.role !== ROLES.ADMIN) query.author = req.user.id;
+
+  const filteredBody = filterObj(req.body, 'name', 'ipAddress', 'platform', 'difficulty', 'status', 'notes');
+
+  const box = await Box.findOneAndUpdate(query, filteredBody, { new: true, runValidators: true });
+  
+  if (!box) {
+    return next(new Error('Box introuvable ou accès refusé'));
+  }
+
   res.status(200).json({ status: 'success', data: box });
 });
