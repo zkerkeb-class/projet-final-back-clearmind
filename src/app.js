@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 const userRouter = require('./routes/userRoutes');
 const payloadRouter = require('./routes/payloadRoutes');
@@ -21,6 +22,9 @@ connectDB();
 // 2. Middleware JSON (Indispensable pour lire req.body)
 app.use(express.json());
 app.use(cors());
+
+// Servir les fichiers statiques (images uploadées)
+app.use(express.static(path.join(__dirname, '../public')));
 
 // 3. Routes
 app.use('/api/v1/users', userRouter);

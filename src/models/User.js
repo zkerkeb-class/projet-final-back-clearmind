@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema({
     enum: Object.values(ROLES), // Seules ces 3 valeurs sont acceptées
     default: ROLES.GUEST 
   },
+  photo: {
+    type: String,
+    default: 'default.jpg'
+  },
   createdAt: {
     type: Date,
     default: Date.now

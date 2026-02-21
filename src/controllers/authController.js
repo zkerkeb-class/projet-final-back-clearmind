@@ -1,82 +1,215 @@
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
 const catchAsync = require('../utils/catchAsync');
-const { ROLES } = require('../utils/constants');
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const crypto = require('crypto');
+const fs = require('fs');
 
+// --- CONFIGURATION MULTER (SÉCURITÉ UPLOAD) ---
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = 'public/img/users';
+    // Création automatique du dossier s'il n'existe pas
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    cb(null, dir); 
+  },
+  filename: (req, file, cb) => {
+    // Renommage aléatoire pour éviter l'écrasement et les noms de fichiers malveillants
+    const ext = path.extname(file.originalname);
+    const randomName = crypto.randomBytes(12).toString('hex');
+    cb(null, `user-${randomName}${ext}`);
+  }
+});
+
+const multerFilter = (req, file, cb) => {
+  // 1. Vérification du MIME Type (Whitelist)
+  if (file.mimetype.startsWith('image/')) {
+    // 2. Vérification de l'extension (Double check)
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (['.png', '.jpg', '.jpeg', '.webp'].includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Extension de fichier non autorisée. Images uniquement.'), false);
+    }
+  } else {
+    cb(new Error('Format de fichier invalide. Veuillez uploader une image.'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: multerFilter,
+  limits: {
+    fileSize: 2 * 1024 * 1024, // Limite à 2MB (Protection DoS)
+    files: 1 // Un seul fichier à la fois
+  }
+});
+
+exports.uploadUserPhoto = upload.single('photo');
+
+// --- UTILITAIRES ---
 const signToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN
+  return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret-dev-key', {
+    expiresIn: process.env.JWT_EXPIRES_IN || '90d'
   });
 };
 
-// 1. Inscription
+// Utilitaire pour filtrer les champs autorisés (Protection Mass Assignment)
+const filterObj = (obj, ...allowedFields) => {
+  const newObj = {};
+  Object.keys(obj).forEach(el => {
+    if (allowedFields.includes(el)) newObj[el] = obj[el];
+  });
+  return newObj;
+};
+
+// --- SIGNUP ---
 exports.signup = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
+  // Validation Mot de passe (Backend enforcement)
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
+  if (!passwordRegex.test(req.body.password)) {
+    return next(new Error("Le mot de passe doit contenir 8 caractères, une majuscule, une minuscule et un caractère spécial."));
+  }
+
+  // Préparation de l'objet utilisateur
+  const newUserObj = {
     username: req.body.username,
     email: req.body.email,
     password: req.body.password,
-    role: ROLES.GUEST
-  });
+  };
 
+  // Gestion de la photo si uploadée
+  if (req.file) {
+    newUserObj.photo = req.file.filename;
+  }
+
+  const newUser = await User.create(newUserObj);
   const token = signToken(newUser._id, newUser.role);
+
+  // Suppression du mot de passe de la réponse
   newUser.password = undefined;
 
   res.status(201).json({
     status: 'success',
     token,
+    role: newUser.role,
     data: { user: newUser }
   });
 });
 
-// 2. Connexion
+// --- LOGIN ---
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
+
   if (!email || !password) {
-    const error = new Error("Veuillez fournir un email et un mot de passe");
-    error.statusCode = 400;
-    return next(error);
+    return next(new Error('Veuillez fournir un email et un mot de passe'));
+  }
+
+  const user = await User.findOne({ email }).select('+password');
+
+  if (!user || !(await user.correctPassword(password, user.password))) {
+    return next(new Error('Email ou mot de passe incorrect'));
+  }
+
+  const token = signToken(user._id, user.role);
+  res.status(200).json({ status: 'success', token, role: user.role, data: { user } });
+});
+
+// --- UPDATE CURRENT USER ---
+exports.updateMe = catchAsync(async (req, res, next) => {
+  // 1. Créer une erreur si l'utilisateur tente de changer son mot de passe ici
+  if (req.body.password || req.body.passwordConfirm) {
+    return next(new Error('Cette route n\'est pas pour la modification de mot de passe. Utilisez /updateMyPassword.'));
+  }
+
+  // 2. Filtrer les champs non autorisés (ex: role)
+  const filteredBody = filterObj(req.body, 'username', 'email');
+  
+  // Récupérer l'utilisateur actuel pour avoir l'ancien nom de fichier
+  const currentUser = await User.findById(req.user.id);
+
+  // Fonction de suppression sécurisée
+  const deletePhotoFile = (filename) => {
+    if (filename && filename !== 'default.jpg') {
+      const filePath = path.join(__dirname, '../../public/img/users', filename);
+      fs.unlink(filePath, (err) => {
+        if (err && err.code !== 'ENOENT') console.error('Erreur suppression image:', err);
+      });
+    }
+  };
+
+  if (req.file) {
+    filteredBody.photo = req.file.filename;
+    deletePhotoFile(currentUser.photo);
   }
   
-  // Sécurité : Force la conversion en String pour éviter les injections NoSQL (ex: { "$ne": null })
-  const user = await User.findOne({ email: String(email) }).select('+password');
-  if (!user || !(await user.correctPassword(password, user.password))) {
-    const error = new Error("Email ou mot de passe incorrect");
-    error.statusCode = 401;
-    return next(error);
+  // Si l'utilisateur demande la suppression de la photo
+  if (req.body.deletePhoto === 'true') {
+    filteredBody.photo = 'default.jpg';
+    deletePhotoFile(currentUser.photo);
   }
+
+  // 3. Mettre à jour le document utilisateur
+  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
+    new: true,
+    runValidators: true
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: { user: updatedUser }
+  });
+});
+
+exports.updateMyPassword = catchAsync(async (req, res, next) => {
+  // 1. Récupérer l'utilisateur avec le mot de passe (car select: false par défaut)
+  const user = await User.findById(req.user.id).select('+password');
+
+  // 2. Vérifier si le mot de passe actuel est correct
+  if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
+    return next(new Error('Votre mot de passe actuel est incorrect.'));
+  }
+
+  // 3. Mettre à jour le mot de passe (Le middleware pre('save') du modèle User va le hacher)
+  user.password = req.body.password;
+  await user.save();
+
+  // 4. Renvoyer un nouveau token (car le changement de mot de passe invalide souvent les sessions)
   const token = signToken(user._id, user.role);
-  res.status(200).json({ status: 'success', token, role: user.role });
+  res.status(200).json({ status: 'success', token, data: { user } });
 });
 
-// --- LES FONCTIONS QUI MANQUAIENT PEUT-ÊTRE OU ÉTAIENT MAL PLACÉES ---
-
+// --- USER CRUD (ADMIN) ---
 exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const users = await User.find().select('-password');
-  res.status(200).json({ status: 'success', data: users });
+  const users = await User.find();
+  res.status(200).json({
+    status: 'success',
+    results: users.length,
+    data: { users }
+  });
 });
+
+exports.createUser = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'Cette route n\'est pas définie. Utilisez /signup.'
+  });
+};
 
 exports.updateUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true
   });
-  if (!user) return next(new Error("Utilisateur non trouvé"));
-  res.status(200).json({ status: 'success', data: user });
+  if (!user) return next(new Error('Aucun utilisateur trouvé avec cet ID'));
+  res.status(200).json({ status: 'success', data: { user } });
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndDelete(req.params.id);
-  if (!user) return next(new Error("Utilisateur non trouvé"));
+  if (!user) return next(new Error('Aucun utilisateur trouvé avec cet ID'));
   res.status(204).json({ status: 'success', data: null });
-});
-
-exports.createUser = catchAsync(async (req, res, next) => {
-  const newUser = await User.create({
-    username: req.body.username,
-    email: req.body.email,
-    password: req.body.password,
-    role: req.body.role || ROLES.GUEST
-  });
-  newUser.password = undefined;
-  res.status(201).json({ status: 'success', data: { user: newUser } });
 });
