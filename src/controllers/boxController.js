@@ -3,21 +3,10 @@ const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
 const { ROLES } = require('../utils/constants');
 const logController = require('./logController');
-
-// Utilitaire pour filtrer les champs autorisés (Protection Mass Assignment)
-const filterObj = (obj, ...allowedFields) => {
-  const newObj = {};
-  Object.keys(obj).forEach(el => {
-    if (allowedFields.includes(el)) newObj[el] = obj[el];
-  });
-  return newObj;
-};
+const filterObj = require('../utils/filterObj');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.getAllBoxes = catchAsync(async (req, res, next) => {
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 12;
-  const skip = (page - 1) * limit;
-
   // Construction du filtre dynamique
   const queryObj = {};
   
@@ -38,15 +27,20 @@ exports.getAllBoxes = catchAsync(async (req, res, next) => {
     queryObj.author = req.user.id;
   }
 
-  const boxes = await Box.find(queryObj).sort('-createdAt').skip(skip).limit(limit);
+  // Utilisation de APIFeatures pour la pagination et le tri
+  const features = new APIFeatures(Box.find(queryObj), req.query)
+    .sort()
+    .paginate();
+
+  const boxes = await features.query;
   const total = await Box.countDocuments(queryObj);
   
   res.status(200).json({
     status: 'success',
     results: boxes.length,
     total,
-    totalPages: Math.ceil(total / limit),
-    currentPage: page,
+    totalPages: Math.ceil(total / (req.query.limit * 1 || 12)),
+    currentPage: req.query.page * 1 || 1,
     data: { boxes } // Format attendu par le frontend: res.data.data.boxes
   });
 });

@@ -2,12 +2,9 @@ const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
 const { ROLES } = require('../utils/constants');
 const logController = require('./logController');
+const APIFeatures = require('../utils/apiFeatures');
 
 exports.getAllTargets = catchAsync(async (req, res, next) => {
-  const page = req.query.page * 1 || 1;
-  const limit = req.query.limit * 1 || 10;
-  const skip = (page - 1) * limit;
-
   const queryObj = {};
 
   if (req.query.search) {
@@ -26,15 +23,20 @@ exports.getAllTargets = catchAsync(async (req, res, next) => {
     queryObj.author = req.user.id;
   }
 
-  const targets = await Target.find(queryObj).populate('linkedBox', 'name platform').sort('-createdAt').skip(skip).limit(limit);
+  // Utilisation de APIFeatures pour la pagination et le tri
+  const features = new APIFeatures(Target.find(queryObj).populate('linkedBox', 'name platform'), req.query)
+    .sort()
+    .paginate();
+
+  const targets = await features.query;
   const total = await Target.countDocuments(queryObj);
   
   res.status(200).json({
     status: 'success',
     results: targets.length,
     total,
-    totalPages: Math.ceil(total / limit),
-    currentPage: page,
+    totalPages: Math.ceil(total / (req.query.limit * 1 || 10)),
+    currentPage: req.query.page * 1 || 1,
     data: { targets }
   });
 });

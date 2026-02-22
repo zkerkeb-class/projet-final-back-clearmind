@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
 const logController = require('./logController');
+const filterObj = require('../utils/filterObj');
 
 // --- CONFIGURATION MULTER (SÉCURITÉ UPLOAD) ---
 const storage = multer.diskStorage({
@@ -56,15 +57,6 @@ const signToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret-dev-key', {
     expiresIn: process.env.JWT_EXPIRES_IN || '90d'
   });
-};
-
-// Utilitaire pour filtrer les champs autorisés (Protection Mass Assignment)
-const filterObj = (obj, ...allowedFields) => {
-  const newObj = {};
-  Object.keys(obj).forEach(el => {
-    if (allowedFields.includes(el)) newObj[el] = obj[el];
-  });
-  return newObj;
 };
 
 // --- SIGNUP ---

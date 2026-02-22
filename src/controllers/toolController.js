@@ -2,20 +2,8 @@ const Tool = require('../models/toolModel');
 const Methodology = require('../models/methodologyModel');
 const catchAsync = require('../utils/catchAsync');
 const logController = require('./logController');
-
-// Utilitaire pour échapper les caractères spéciaux dans les regex (Sécurité)
-const escapeRegex = (text) => {
-  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-};
-
-// Utilitaire pour filtrer les champs autorisés (Protection Mass Assignment)
-const filterObj = (obj, ...allowedFields) => {
-  const newObj = {};
-  Object.keys(obj).forEach(el => {
-    if (allowedFields.includes(el)) newObj[el] = obj[el];
-  });
-  return newObj;
-};
+const filterObj = require('../utils/filterObj');
+const escapeRegex = require('../utils/escapeRegex');
 
 exports.getToolByName = catchAsync(async (req, res, next) => {
   // On décode l'URL et on cherche sans tenir compte de la casse
