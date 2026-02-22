@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { BOX_PLATFORMS, BOX_DIFFICULTIES, BOX_STATUSES } = require('../utils/constants');
+const { BOX_PLATFORMS, BOX_DIFFICULTIES, BOX_STATUSES, BOX_CATEGORIES, TARGET_OS, IPV4_REGEX } = require('../utils/constants');
 
 const boxSchema = new mongoose.Schema({
   name: {
@@ -11,7 +11,7 @@ const boxSchema = new mongoose.Schema({
   ipAddress: {
     type: String,
     required: [true, 'Une adresse IP est requise'],
-    match: [/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/, 'Adresse IP invalide']
+    match: [IPV4_REGEX, 'Adresse IP invalide']
   },
   platform: {
     type: String,
@@ -22,6 +22,16 @@ const boxSchema = new mongoose.Schema({
     type: String,
     enum: Object.values(BOX_DIFFICULTIES),
     default: BOX_DIFFICULTIES.EASY
+  },
+  os: {
+    type: String,
+    enum: Object.values(TARGET_OS),
+    default: TARGET_OS.LINUX
+  },
+  category: {
+    type: String,
+    enum: Object.values(BOX_CATEGORIES),
+    default: BOX_CATEGORIES.RED
   },
   status: {
     type: String,

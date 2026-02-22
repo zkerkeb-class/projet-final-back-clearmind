@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { TARGET_OS, TARGET_STATUSES } = require('../utils/constants');
+const { TARGET_OS, TARGET_STATUSES, IPV4_REGEX } = require('../utils/constants');
 
 const targetSchema = new mongoose.Schema({
   name: {
@@ -10,7 +10,7 @@ const targetSchema = new mongoose.Schema({
   ip: {
     type: String,
     required: [true, 'L\'adresse IP est requise'],
-    match: [/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/, 'Adresse IP invalide']
+    match: [IPV4_REGEX, 'Adresse IP invalide']
   },
   domain: {
     type: String,

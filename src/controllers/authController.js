@@ -144,10 +144,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
   if (req.file) {
     filteredBody.photo = req.file.filename;
     deletePhotoFile(currentUser.photo);
-  }
-  
-  // Si l'utilisateur demande la suppression de la photo
-  if (req.body.deletePhoto === 'true') {
+  } else if (req.body.deletePhoto === 'true') {
+    // Si pas de nouvelle photo mais demande de suppression
     filteredBody.photo = 'default.jpg';
     deletePhotoFile(currentUser.photo);
   }

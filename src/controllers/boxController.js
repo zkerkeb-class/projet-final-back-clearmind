@@ -29,6 +29,8 @@ exports.getAllBoxes = catchAsync(async (req, res, next) => {
   
   if (req.query.difficulty && req.query.difficulty !== 'All') queryObj.difficulty = req.query.difficulty;
   if (req.query.platform && req.query.platform !== 'All') queryObj.platform = req.query.platform;
+  if (req.query.category && req.query.category !== 'All') queryObj.category = req.query.category;
+  if (req.query.os && req.query.os !== 'All') queryObj.os = req.query.os;
 
   // Filtrage par auteur (sauf pour les admins)
   if (req.user.role !== ROLES.ADMIN) {
@@ -69,7 +71,7 @@ exports.getBox = catchAsync(async (req, res, next) => {
 
 exports.createBox = catchAsync(async (req, res, next) => {
   // Protection Mass Assignment : On ne garde que les champs autorisés
-  const filteredBody = filterObj(req.body, 'name', 'ipAddress', 'platform', 'difficulty', 'status', 'notes');
+  const filteredBody = filterObj(req.body, 'name', 'ipAddress', 'platform', 'difficulty', 'category', 'os', 'status', 'notes');
   filteredBody.author = req.user.id;
 
   const newBox = await Box.create(filteredBody);
@@ -97,7 +99,7 @@ exports.updateBox = catchAsync(async (req, res, next) => {
   const query = { _id: req.params.id };
   if (req.user.role !== ROLES.ADMIN) query.author = req.user.id;
 
-  const filteredBody = filterObj(req.body, 'name', 'ipAddress', 'platform', 'difficulty', 'status', 'notes');
+  const filteredBody = filterObj(req.body, 'name', 'ipAddress', 'platform', 'difficulty', 'category', 'os', 'status', 'notes');
 
   const box = await Box.findOneAndUpdate(query, filteredBody, { new: true, runValidators: true });
   

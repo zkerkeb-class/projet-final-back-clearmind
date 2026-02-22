@@ -18,6 +18,12 @@ exports.BOX_DIFFICULTIES = {
   INSANE: 'Insane'
 };
 
+exports.BOX_CATEGORIES = {
+  RED: 'Red',
+  BLUE: 'Blue',
+  PURPLE: 'Purple'
+};
+
 exports.BOX_PLATFORMS = {
   HTB: 'HackTheBox',
   THM: 'TryHackMe',
@@ -42,3 +48,5 @@ exports.TARGET_OS = {
   IOS: 'iOS',
   UNKNOWN: 'Unknown'
 };
+
+exports.IPV4_REGEX = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
