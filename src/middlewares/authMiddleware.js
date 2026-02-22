@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { promisify } = require('util');
 const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
+const logController = require('../controllers/logController');
 
 exports.protect = catchAsync(async (req, res, next) => {
   let token;
@@ -27,6 +28,7 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
+      logController.createLog('ACCESS_DENIED', req.user.username, `Tentative d'accès non autorisé à ${req.originalUrl}`, 'warning');
       const error = new Error("Permission refusée");
       error.statusCode = 403;
       return next(error);

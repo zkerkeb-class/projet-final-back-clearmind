@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
 const fs = require('fs');
+const logController = require('./logController');
 
 // --- CONFIGURATION MULTER (SÉCURITÉ UPLOAD) ---
 const storage = multer.diskStorage({
@@ -89,6 +90,8 @@ exports.signup = catchAsync(async (req, res, next) => {
   const newUser = await User.create(newUserObj);
   const token = signToken(newUser._id, newUser.role);
 
+  await logController.createLog('USER_SIGNUP', newUser.username, 'Nouvelle inscription', 'success');
+
   // Suppression du mot de passe de la réponse
   newUser.password = undefined;
 
@@ -111,9 +114,11 @@ exports.login = catchAsync(async (req, res, next) => {
   const user = await User.findOne({ email }).select('+password');
 
   if (!user || !(await user.correctPassword(password, user.password))) {
+    await logController.createLog('LOGIN_FAILED', email || 'UNKNOWN', 'Échec authentification', 'warning');
     return next(new Error('Email ou mot de passe incorrect'));
   }
 
+  await logController.createLog('USER_LOGIN', user.username, 'Connexion réussie', 'info');
   const token = signToken(user._id, user.role);
   res.status(200).json({ status: 'success', token, role: user.role, data: { user } });
 });
@@ -156,6 +161,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     runValidators: true
   });
 
+  await logController.createLog('PROFILE_UPDATE', req.user.username, 'Mise à jour du profil', 'info');
+
   res.status(200).json({
     status: 'success',
     data: { user: updatedUser }
@@ -174,6 +181,8 @@ exports.updateMyPassword = catchAsync(async (req, res, next) => {
   // 3. Mettre à jour le mot de passe (Le middleware pre('save') du modèle User va le hacher)
   user.password = req.body.password;
   await user.save();
+
+  await logController.createLog('PASSWORD_CHANGE', user.username, 'Changement de mot de passe', 'info');
 
   // 4. Renvoyer un nouveau token (car le changement de mot de passe invalide souvent les sessions)
   const token = signToken(user._id, user.role);
@@ -203,11 +212,13 @@ exports.updateUser = catchAsync(async (req, res, next) => {
     runValidators: true
   });
   if (!user) return next(new Error('Aucun utilisateur trouvé avec cet ID'));
+  await logController.createLog('USER_UPDATED', req.user.username, `Modification de l'utilisateur ${user.username}`, 'warning');
   res.status(200).json({ status: 'success', data: { user } });
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndDelete(req.params.id);
   if (!user) return next(new Error('Aucun utilisateur trouvé avec cet ID'));
+  await logController.createLog('USER_DELETED', req.user.username, `Suppression de l'utilisateur ${user.username}`, 'warning');
   res.status(204).json({ status: 'success', data: null });
 });

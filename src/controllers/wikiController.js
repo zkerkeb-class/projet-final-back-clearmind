@@ -1,5 +1,6 @@
 const Wiki = require('../models/Wiki');
 const catchAsync = require('../utils/catchAsync');
+const logController = require('./logController');
 
 // 1. Récupérer toutes les entrées (pour la sidebar)
 exports.getAllMethods = catchAsync(async (req, res, next) => {
@@ -33,6 +34,8 @@ exports.createMethod = catchAsync(async (req, res, next) => {
   
   const newMethod = await Wiki.create(req.body);
 
+  await logController.createLog('WIKI_CREATED', req.user.username, `Nouvelle fiche port ${newMethod.port}`, 'success');
+
   res.status(201).json({
     status: 'success',
     data: { method: newMethod }
@@ -50,6 +53,8 @@ exports.updateMethod = catchAsync(async (req, res, next) => {
     return next(new Error('Impossible de modifier : ID introuvable'));
   }
 
+  await logController.createLog('WIKI_UPDATED', req.user.username, `Mise à jour fiche port ${method.port}`, 'info');
+
   res.status(200).json({
     status: 'success',
     data: { method }
@@ -62,6 +67,8 @@ exports.deleteMethod = catchAsync(async (req, res, next) => {
   if (!method) {
     return next(new Error('Impossible de supprimer : ID introuvable'));
   }
+
+  await logController.createLog('WIKI_DELETED', req.user.username, `Suppression fiche port ${method.port}`, 'warning');
 
   res.status(204).json({ status: 'success', data: null });
 });

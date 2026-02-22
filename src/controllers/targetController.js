@@ -1,6 +1,7 @@
 const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
 const { ROLES } = require('../utils/constants');
+const logController = require('./logController');
 
 exports.getAllTargets = catchAsync(async (req, res, next) => {
   const page = req.query.page * 1 || 1;
@@ -43,6 +44,8 @@ exports.createTarget = catchAsync(async (req, res, next) => {
   let newTarget = await Target.create(req.body);
   newTarget = await newTarget.populate('linkedBox', 'name platform');
 
+  await logController.createLog('TARGET_CREATED', req.user.username, `Ajout de la cible "${newTarget.name}"`, 'success');
+
   res.status(201).json({
     status: 'success',
     data: { target: newTarget }
@@ -50,7 +53,12 @@ exports.createTarget = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteTarget = catchAsync(async (req, res, next) => {
-  await Target.findByIdAndDelete(req.params.id);
+  const target = await Target.findByIdAndDelete(req.params.id);
+  
+  if (target) {
+    await logController.createLog('TARGET_DELETED', req.user.username, `Suppression de la cible "${target.name}"`, 'warning');
+  }
+
   res.status(204).json({
     status: 'success',
     data: null
@@ -66,6 +74,8 @@ exports.updateTarget = catchAsync(async (req, res, next) => {
   if (!target) {
     return next(new Error('Aucune cible trouvée avec cet ID'));
   }
+
+  await logController.createLog('TARGET_UPDATED', req.user.username, `Mise à jour cible: ${target.name}`, 'info');
 
   res.status(200).json({ status: 'success', data: { target } });
 });

@@ -2,6 +2,7 @@ const Box = require('../models/Box');
 const Target = require('../models/Target');
 const catchAsync = require('../utils/catchAsync');
 const { ROLES } = require('../utils/constants');
+const logController = require('./logController');
 
 // Utilitaire pour filtrer les champs autorisés (Protection Mass Assignment)
 const filterObj = (obj, ...allowedFields) => {
@@ -76,6 +77,8 @@ exports.createBox = catchAsync(async (req, res, next) => {
 
   const newBox = await Box.create(filteredBody);
 
+  await logController.createLog('BOX_CREATED', req.user.username, `Création de la box "${newBox.name}"`, 'success');
+
   res.status(201).json({
     status: 'success',
     data: newBox // Format attendu par le frontend: res.data.data
@@ -92,6 +95,8 @@ exports.deleteBox = catchAsync(async (req, res, next) => {
     return next(new Error('Aucune box trouvée ou accès refusé'));
   }
 
+  await logController.createLog('BOX_DELETED', req.user.username, `Suppression de la box "${box.name}"`, 'warning');
+
   res.status(204).json({ status: 'success', data: null });
 });
 
@@ -106,6 +111,8 @@ exports.updateBox = catchAsync(async (req, res, next) => {
   if (!box) {
     return next(new Error('Box introuvable ou accès refusé'));
   }
+
+  await logController.createLog('BOX_UPDATED', req.user.username, `Mise à jour box: ${box.name}`, 'info');
 
   res.status(200).json({ status: 'success', data: box });
 });

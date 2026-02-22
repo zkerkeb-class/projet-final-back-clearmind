@@ -14,6 +14,7 @@ const newsRouter = require('./routes/newsRoutes');
 const methodologyRouter = require('./routes/methodologyRoutes');
 const toolRouter = require('./routes/toolRoutes');
 const reverseShellRouter = require('./routes/reverseShellRoutes');
+const logRouter = require('./routes/logRoutes');
 const app = express();
 
 // 1. Connexion DB
@@ -37,6 +38,7 @@ app.use('/api/v1/news', newsRouter);
 app.use('/api/v1/methodology', methodologyRouter);
 app.use('/api/v1/tools', toolRouter);
 app.use('/api/v1/reverseshells', reverseShellRouter);
+app.use('/api/v1/logs', logRouter);
 
 app.all('*path', (req, res, next) => {
   const err = new Error(`Impossible de trouver ${req.originalUrl} sur ce serveur !`);

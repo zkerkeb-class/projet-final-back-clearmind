@@ -1,6 +1,7 @@
 const Tool = require('../models/toolModel');
 const Methodology = require('../models/methodologyModel');
 const catchAsync = require('../utils/catchAsync');
+const logController = require('./logController');
 
 // Utilitaire pour échapper les caractères spéciaux dans les regex (Sécurité)
 const escapeRegex = (text) => {
@@ -50,6 +51,8 @@ exports.createTool = catchAsync(async (req, res, next) => {
     { $addToSet: { tools: newTool.name } }
   );
 
+  await logController.createLog('TOOL_CREATED', req.user.username, `Ajout outil: ${newTool.name}`, 'success');
+
   res.status(201).json({ status: 'success', data: newTool });
 });
 
@@ -66,6 +69,9 @@ exports.updateTool = catchAsync(async (req, res, next) => {
     new: true,
     runValidators: true
   });
+
+  await logController.createLog('TOOL_UPDATED', req.user.username, `Modification outil: ${tool.name}`, 'info');
+
   res.status(200).json({ status: 'success', data: tool });
 });
 
@@ -87,6 +93,8 @@ exports.deleteTool = catchAsync(async (req, res, next) => {
     { title: tool.category, key: 'kill-chain' },
     { $pull: { tools: tool.name } }
   );
+
+  await logController.createLog('TOOL_DELETED', req.user.username, `Suppression outil: ${tool.name}`, 'warning');
 
   // Statut 204 : Succès sans contenu à renvoyer
   res.status(204).json({
