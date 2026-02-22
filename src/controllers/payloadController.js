@@ -22,8 +22,6 @@ exports.getPayload = catchAsync(async (req, res, next) => {
     return next(error);
   }
 
-  await logController.createLog('PAYLOAD_UPDATED', req.user.username, `Modification payload: ${payload.title}`, 'info');
-
   res.status(200).json({ status: 'success', data: { payload } });
 });
 
@@ -43,6 +41,8 @@ exports.updatePayload = catchAsync(async (req, res, next) => {
     error.statusCode = 404;
     return next(error);
   }
+
+  await logController.createLog('PAYLOAD_UPDATED', req.user.username, `Modification payload: ${payload.title}`, 'info');
 
   res.status(200).json({ status: 'success', data: { payload } });
 });

@@ -27,6 +27,9 @@ exports.getToolByName = catchAsync(async (req, res, next) => {
   });
 
   if (!tool) {
+    // On loggue la tentative d'accès échouée
+    const actor = req.user ? req.user.username : 'Anonymous';
+    await logController.createLog('TOOL_NOT_FOUND', actor, `Outil introuvable: ${decodedName}`, 'warning');
     // Retourne une vraie 404 pour que le front déclenche le mode "Erreur"
     return res.status(404).json({ status: 'fail', message: "Outil non trouvé" });
   }

@@ -20,3 +20,31 @@ exports.createLog = async (action, actor, details, level = 'info') => {
     console.error('Erreur lors de la création du log:', err);
   }
 };
+
+// Endpoint pour créer des logs depuis le frontend (ex: Exports)
+exports.createLogManual = catchAsync(async (req, res, next) => {
+  const { action, details, level } = req.body;
+  
+  await Log.create({
+    action: action || 'MANUAL_LOG',
+    actor: req.user.username,
+    details: details || 'Action utilisateur',
+    level: level || 'info'
+  });
+
+  res.status(201).json({ status: 'success' });
+});
+
+exports.deleteAllLogs = catchAsync(async (req, res, next) => {
+  await Log.deleteMany();
+  
+  // On crée une entrée pour signifier la purge (Audit)
+  await Log.create({
+    action: 'SYSTEM_PURGE',
+    actor: req.user.username,
+    details: 'Purge complète de l\'historique des logs',
+    level: 'warning'
+  });
+
+  res.status(204).json({ status: 'success', data: null });
+});

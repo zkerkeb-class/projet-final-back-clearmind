@@ -2,6 +2,7 @@ const express = require('express');
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
+const { ROLES } = require('../utils/constants');
 
 // Routes publiques
 router.post('/signup', authController.uploadUserPhoto, authController.signup);
@@ -20,11 +21,11 @@ router.patch('/updateMyPassword', authController.updateMyPassword);
 
 // Routes Admin
 router.route('/')
-  .get(authMiddleware.restrictTo('admin'), authController.getAllUsers)
-  .post(authMiddleware.restrictTo('admin'), authController.createUser);
+  .get(authMiddleware.restrictTo(ROLES.ADMIN), authController.getAllUsers)
+  .post(authMiddleware.restrictTo(ROLES.ADMIN), authController.createUser);
 
 router.route('/:id')
-  .patch(authMiddleware.restrictTo('admin'), authController.updateUser)
-  .delete(authMiddleware.restrictTo('admin'), authController.deleteUser);
+  .patch(authMiddleware.restrictTo(ROLES.ADMIN), authController.updateUser)
+  .delete(authMiddleware.restrictTo(ROLES.ADMIN), authController.deleteUser);
 
 module.exports = router;

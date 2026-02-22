@@ -1,6 +1,7 @@
 const express = require('express');
 const payloadController = require('../controllers/payloadController');
 const authMiddleware = require('../middlewares/authMiddleware');
+const { ROLES } = require('../utils/constants');
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.get('/my-payloads', payloadController.getMyPayloads);
 
 router.route('/')
   .get(payloadController.getAllPayloads)
-  .post(authMiddleware.restrictTo('admin', 'pentester'), payloadController.createPayload);
+  .post(authMiddleware.restrictTo(ROLES.ADMIN, ROLES.PENTESTER), payloadController.createPayload);
 
 router
   .route('/:id')
