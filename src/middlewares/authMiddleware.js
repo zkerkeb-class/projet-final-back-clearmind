@@ -28,7 +28,9 @@ exports.protect = catchAsync(async (req, res, next) => {
 exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      logController.createLog('ACCESS_DENIED', req.user.username, `Tentative d'accès non autorisé à ${req.originalUrl}`, 'warning');
+      // On utilise le paramètre 'resource' s'il existe (pour les logs frontend), sinon l'URL brute
+      const targetResource = req.query.resource || req.originalUrl;
+      logController.createLog('ACCESS_DENIED', req.user.username, `Tentative d'accès non autorisé à ${targetResource}`, 'warning');
       const error = new Error("Permission refusée");
       error.statusCode = 403;
       return next(error);
