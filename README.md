@@ -29,6 +29,7 @@ npm install
 
 ### 3. Configuration des Variables d'Environnement
 Créez un fichier `.env` à la racine du projet. Ce fichier contient les secrets de configuration et ne doit jamais être commité (conforme ISO A.8.9 - Gestion des secrets).
+(il est commité pour le bg zach, le goat, le king, au cas où tu clones et check le projet)
 
 ```env
 # Base de Données
