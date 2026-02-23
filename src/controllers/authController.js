@@ -191,12 +191,20 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.createUser = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'Cette route n\'est pas définie. Utilisez /signup.'
+exports.createUser = catchAsync(async (req, res, next) => {
+  const newUser = await User.create({
+    username: req.body.username,
+    email: req.body.email,
+    password: req.body.password,
+    role: req.body.role || 'guest'
   });
-};
+  
+  newUser.password = undefined;
+  res.status(201).json({
+    status: 'success',
+    data: { user: newUser }
+  });
+});
 
 exports.updateUser = catchAsync(async (req, res, next) => {
   const user = await User.findByIdAndUpdate(req.params.id, req.body, {

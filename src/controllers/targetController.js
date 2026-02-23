@@ -55,7 +55,10 @@ exports.createTarget = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteTarget = catchAsync(async (req, res, next) => {
-  const target = await Target.findByIdAndDelete(req.params.id);
+  const query = { _id: req.params.id };
+  if (req.user.role !== ROLES.ADMIN) query.author = req.user.id;
+
+  const target = await Target.findOneAndDelete(query);
   
   if (target) {
     await logController.createLog('TARGET_DELETED', req.user.username, `Suppression de la cible "${target.name}"`, 'warning');
@@ -68,7 +71,10 @@ exports.deleteTarget = catchAsync(async (req, res, next) => {
 });
 
 exports.updateTarget = catchAsync(async (req, res, next) => {
-  const target = await Target.findByIdAndUpdate(req.params.id, req.body, {
+  const query = { _id: req.params.id };
+  if (req.user.role !== ROLES.ADMIN) query.author = req.user.id;
+
+  const target = await Target.findOneAndUpdate(query, req.body, {
     new: true,
     runValidators: true
   }).populate('linkedBox', 'name platform');
