@@ -29,6 +29,7 @@ npm install
 
 ### 3. Configuration des Variables d'Environnement
 Créez un fichier `.env` à la racine du projet. Ce fichier contient les secrets de configuration et ne doit jamais être commité (conforme ISO A.8.9 - Gestion des secrets).
+(il est commité pour le bg zach, le goat, le king, au cas où tu clones et check le projet)
 
 ```env
 # Base de Données
@@ -37,7 +38,6 @@ MONGO_URI="mongodb://localhost:27017/redsheet"
 # Sécurité JWT
 JWT_SECRET="FPLGF7JS8jpIzyfrEkZZqubmuemqELQehoYaEhSv8ot"
 JWT_EXPIRES_IN=90d
-JWT_COOKIE_EXPIRES_IN=90
 ```
 
 ### 4. Démarrage
@@ -65,7 +65,7 @@ Ce projet implémente plusieurs contrôles technologiques pour garantir la confi
 - **Secure Password Storage** : Hachage irréversible des mots de passe avec `bcrypt` (Cost factor 12).
 - **Secure File Upload** : Validation stricte des types MIME et renommage aléatoire des fichiers uploadés via `Multer`.
 
-## 📚 Documentation API (Endpoints Principaux)
+## 📚 Documentation API
 
 | Ressource | Méthodes | Description | Accès |
 |-----------|----------|-------------|-------|
@@ -73,7 +73,11 @@ Ce projet implémente plusieurs contrôles technologiques pour garantir la confi
 | `/api/v1/payloads` | GET, POST, PATCH, DELETE | Base de données des vecteurs d'attaque | Auth |
 | `/api/v1/targets` | GET, POST, PATCH, DELETE | Gestion du scope et des cibles | Pentester+ |
 | `/api/v1/boxes` | GET, POST, PATCH, DELETE | Suivi des machines compromises | Pentester+ |
+| `/api/v1/wiki` | GET, POST, PATCH, DELETE | Base de connaissances collaborative | Auth |
+| `/api/v1/news` | GET, POST, DELETE | Gestion des actualités de sécurité | Auth |
+| `/api/v1/methodology` | GET, POST, PATCH, DELETE | Guides et méthodologies de test | Auth |
 | `/api/v1/tools` | GET, POST, PATCH, DELETE | Arsenal d'outils et documentation | Auth (Write: Admin) |
+| `/api/v1/reverseshells` | GET | Générateur de commandes Reverse Shell | Auth |
 | `/api/v1/logs` | GET, DELETE | Journaux d'audit système | Admin |
 | `/api/v1/search` | GET | Recherche globale sécurisée | Auth |
 
