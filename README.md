@@ -74,11 +74,11 @@ Ce projet implémente plusieurs contrôles technologiques pour garantir la confi
 | `/api/v1/targets` | GET, POST, PATCH, DELETE | Gestion du scope et des cibles | Pentester+ |
 | `/api/v1/boxes` | GET, POST, PATCH, DELETE | Suivi des machines compromises | Pentester+ |
 | `/api/v1/wiki` | GET, POST, PATCH, DELETE | Base de connaissances collaborative | Auth |
-| `/api/v1/news` | GET, POST, DELETE | Gestion des actualités de sécurité | Auth |
-| `/api/v1/methodology` | GET, POST, PATCH, DELETE | Guides et méthodologies de test | Auth |
+| `/api/v1/news` | GET | Gestion des actualités de sécurité | Auth |
+| `/api/v1/methodology` | GET | Guides et méthodologies de test | Auth |
 | `/api/v1/tools` | GET, POST, PATCH, DELETE | Arsenal d'outils et documentation | Auth (Write: Admin) |
-| `/api/v1/reverseshells` | GET | Générateur de commandes Reverse Shell | Auth |
-| `/api/v1/logs` | GET, DELETE | Journaux d'audit système | Admin |
+| `/api/v1/reverseshells` | GET, POST, PATCH, DELETE | Générateur de commandes Reverse Shell | Auth |
+| `/api/v1/logs` | GET, POST, DELETE | Journaux d'audit système | Admin |
 | `/api/v1/search` | GET | Recherche globale sécurisée | Auth |
 
 ---
