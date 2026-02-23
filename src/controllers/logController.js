@@ -12,7 +12,7 @@ exports.getAllLogs = catchAsync(async (req, res, next) => {
   });
 });
 
-// Méthode interne pour créer des logs depuis d'autres contrôleurs
+// Méthode pour créer des logs depuis d'autres contrôleurs
 exports.createLog = async (action, actor, details, level = 'info') => {
   try {
     await Log.create({ action, actor, details, level });
@@ -38,7 +38,7 @@ exports.createLogManual = catchAsync(async (req, res, next) => {
 exports.deleteAllLogs = catchAsync(async (req, res, next) => {
   await Log.deleteMany();
   
-  // On crée une entrée pour signifier la purge (Audit)
+  // On crée une entrée pour logger la purge
   await Log.create({
     action: 'SYSTEM_PURGE',
     actor: req.user.username,

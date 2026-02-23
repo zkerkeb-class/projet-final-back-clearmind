@@ -57,7 +57,7 @@ exports.getBox = catchAsync(async (req, res, next) => {
   }
 
   // Récupérer les cibles liées à cette box (Reconnaissance)
-  // CORRECTION RBAC : On s'assure de ne récupérer que les cibles appartenant à l'utilisateur (sauf Admin)
+  // On s'assure de ne récupérer que les cibles appartenant à l'utilisateur (sauf Admin)
   const targetQuery = { linkedBox: req.params.id };
   if (req.user.role !== ROLES.ADMIN) targetQuery.author = req.user.id;
 

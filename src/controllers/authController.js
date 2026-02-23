@@ -8,7 +8,7 @@ const fs = require('fs');
 const logController = require('./logController');
 const filterObj = require('../utils/filterObj');
 
-// --- CONFIGURATION MULTER (SÉCURITÉ UPLOAD) ---
+// CONFIGURATION MULTER (SÉCURITÉ UPLOAD)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = 'public/img/users';
@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
 const multerFilter = (req, file, cb) => {
   // 1. Vérification du MIME Type (Whitelist)
   if (file.mimetype.startsWith('image/')) {
-    // 2. Vérification de l'extension (Double check)
+    // 2. Vérification de l'extension
     const ext = path.extname(file.originalname).toLowerCase();
     if (['.png', '.jpg', '.jpeg', '.webp'].includes(ext)) {
       cb(null, true);
@@ -52,16 +52,16 @@ const upload = multer({
 
 exports.uploadUserPhoto = upload.single('photo');
 
-// --- UTILITAIRES ---
+// UTILITAIRES
 const signToken = (id, role) => {
   return jwt.sign({ id, role }, process.env.JWT_SECRET || 'secret-dev-key', {
     expiresIn: process.env.JWT_EXPIRES_IN || '90d'
   });
 };
 
-// --- SIGNUP ---
+// SIGNUP
 exports.signup = catchAsync(async (req, res, next) => {
-  // Validation Mot de passe (Backend enforcement)
+  // Validation Mot de passe
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#\$%\^&\*])(?=.{8,})/;
   if (!passwordRegex.test(req.body.password)) {
     return next(new Error("Le mot de passe doit contenir 8 caractères, une majuscule, une minuscule et un caractère spécial."));
@@ -95,7 +95,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   });
 });
 
-// --- LOGIN ---
+// LOGIN
 exports.login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -115,9 +115,9 @@ exports.login = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', token, role: user.role, data: { user } });
 });
 
-// --- UPDATE CURRENT USER ---
+// UPDATE CURRENT USER
 exports.updateMe = catchAsync(async (req, res, next) => {
-  // 1. Créer une erreur si l'utilisateur tente de changer son mot de passe ici
+  // 1. Erreur si l'utilisateur tente de changer son mot de passe ici
   if (req.body.password || req.body.passwordConfirm) {
     return next(new Error('Cette route n\'est pas pour la modification de mot de passe. Utilisez /updateMyPassword.'));
   }
@@ -181,7 +181,7 @@ exports.updateMyPassword = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: 'success', token, data: { user } });
 });
 
-// --- USER CRUD (ADMIN) ---
+// USER CRUD (ADMIN)
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
   res.status(200).json({

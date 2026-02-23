@@ -31,7 +31,7 @@ exports.getLatestNews = catchAsync(async (req, res, next) => {
 
       if (item.link.includes('cert.ssi.gouv.fr')) {
         source = 'CERT-FR';
-        color = '#00d4ff'; // Cyan (Couleur principale du thème)
+        color = '#00d4ff'; // Cyan
       } else if (item.link.includes('unit42')) {
         source = 'UNIT 42';
         color = '#9b59b6'; // Amethyst Purple
