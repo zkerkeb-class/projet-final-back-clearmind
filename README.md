@@ -31,27 +31,18 @@ npm install
 Créez un fichier `.env` à la racine du projet. Ce fichier contient les secrets de configuration et ne doit jamais être commité (conforme ISO A.8.9 - Gestion des secrets).
 
 ```env
-# Serveur
-NODE_ENV=development
-PORT=5000
-
 # Base de Données
-DATABASE=mongodb://localhost:27017/redsheet-db
-# Optionnel : DATABASE_PASSWORD=...
+MONGO_URI="mongodb://localhost:27017/redsheet"
 
 # Sécurité JWT
-JWT_SECRET=votre-cle-secrete-tres-longue-et-complexe-pour-signer-les-tokens
+JWT_SECRET="FPLGF7JS8jpIzyfrEkZZqubmuemqELQehoYaEhSv8ot"
 JWT_EXPIRES_IN=90d
 JWT_COOKIE_EXPIRES_IN=90
 ```
 
 ### 4. Démarrage
 ```bash
-# Mode Développement (avec rechargement à chaud)
 npm run dev
-
-# Mode Production
-npm start
 ```
 
 ## 🔐 Contrôles de Sécurité (Conformité ISO A.8)
@@ -88,5 +79,5 @@ Ce projet implémente plusieurs contrôles technologiques pour garantir la confi
 
 ---
 
-**RedSheet Security** - *Centralized Pentest Operations*
-© 2024 - Tous droits réservés.
+**RedSheet** - *Centralized Pentest Operations*
+© 2026 - Tous droits réservés.
