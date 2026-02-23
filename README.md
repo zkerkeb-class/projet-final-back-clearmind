@@ -38,7 +38,6 @@ MONGO_URI="mongodb://localhost:27017/redsheet"
 # Sécurité JWT
 JWT_SECRET="FPLGF7JS8jpIzyfrEkZZqubmuemqELQehoYaEhSv8ot"
 JWT_EXPIRES_IN=90d
-JWT_COOKIE_EXPIRES_IN=90
 ```
 
 ### 4. Démarrage
